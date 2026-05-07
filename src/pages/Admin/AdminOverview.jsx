@@ -47,7 +47,7 @@ export default function AdminOverview() {
       <div style={styles.header}>
         <div>
           <p style={styles.eyebrow}>Admin Monitor</p>
-          <h1 style={styles.title}>AI WA Bot Overview</h1>
+          <h1 style={styles.title}>Lapakin Asisten Overview</h1>
           <p style={styles.subtitle}>Pantau toko, conversation, handoff, dan activity bot lintas tenant.</p>
         </div>
         <button className="btn btn-secondary" onClick={load}>Refresh</button>
@@ -62,12 +62,12 @@ export default function AdminOverview() {
             <StatCard label="Users" value={s.total_users} />
             <StatCard label="Shops" value={s.total_shops} helper={`${s.lapakin_shops || 0} Lapakin · ${s.standalone_shops || 0} standalone`} />
             <StatCard label="Bot Enabled" value={s.bot_enabled} />
-            <StatCard label="Auto Reply" value={s.auto_reply_active} />
-            <StatCard label="Draft Only" value={s.draft_only} />
+            <StatCard label="Balas Otomatis" value={s.auto_reply_active} />
+            <StatCard label="Mode Draft" value={s.draft_only} />
             <StatCard label="Total Sessions" value={s.total_sessions} />
             <StatCard label="Sessions Today" value={s.sessions_today} />
             <StatCard label="Messages Today" value={s.messages_today} />
-            <StatCard label="Handoff Pending" value={s.handoff_pending} />
+            <StatCard label="Perlu Owner" value={s.handoff_pending} />
             <StatCard label="Failed" value={s.failed_conversations} />
           </div>
 

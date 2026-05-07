@@ -10,8 +10,8 @@ const NAV = [
   { to: '/dashboard',          icon: LayoutDashboard, label: 'Overview' },
   { to: '/dashboard/shop',     icon: Store,           label: 'Profil Toko' },
   { to: '/dashboard/products', icon: Package,         label: 'Produk' },
-  { to: '/dashboard/faqs',     icon: MessageSquare,   label: 'FAQ / Knowledge Base' },
-  { to: '/dashboard/bot',      icon: Bot,             label: 'Bot Settings' },
+  { to: '/dashboard/faqs',     icon: MessageSquare,   label: 'Knowledge Asisten' },
+  { to: '/dashboard/bot',      icon: Bot,             label: 'Pengaturan Asisten' },
   { to: '/dashboard/simulator',icon: Zap,             label: 'Simulator' },
   { to: '/dashboard/inbox',    icon: Inbox,           label: 'Inbox' },
 ];
@@ -51,7 +51,7 @@ export default function Sidebar({ user }) {
             <Bot size={18} color="#fff" />
           </div>
           <div>
-            <div style={{ color: '#fff', fontWeight: 800, fontSize: '0.95rem', lineHeight: 1 }}>AI WA Bot</div>
+            <div style={{ color: '#fff', fontWeight: 800, fontSize: '0.95rem', lineHeight: 1 }}>Lapakin Asisten</div>
             <div style={{ color: 'var(--text-sidebar)', fontSize: '0.7rem', marginTop: 2 }}>Dashboard</div>
           </div>
         </div>

@@ -82,7 +82,7 @@ export default function FAQs() {
     <div>
       <div className="page-header">
         <div className="page-header-left">
-          <h1>FAQ / Knowledge Base</h1>
+          <h1>Knowledge Asisten</h1>
           <p>{faqs.length} FAQ terdaftar — minimal 5 untuk skor readiness penuh</p>
         </div>
         <button className="btn btn-primary" onClick={openCreate}>

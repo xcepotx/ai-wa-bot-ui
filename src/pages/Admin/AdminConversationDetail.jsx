@@ -62,8 +62,8 @@ export default function AdminConversationDetail() {
       <div style={styles.topbar}>
         <button className="btn btn-secondary" onClick={() => navigate('/admin/conversations')}>← Kembali</button>
         <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-secondary" disabled={busy} onClick={handoff}>Mark Handoff</button>
-          <button className="btn btn-primary" disabled={busy} onClick={resolve}>Mark Resolved</button>
+          <button className="btn btn-secondary" disabled={busy} onClick={handoff}>Tandai Perlu Owner</button>
+          <button className="btn btn-primary" disabled={busy} onClick={resolve}>Tandai Selesai</button>
         </div>
       </div>
 

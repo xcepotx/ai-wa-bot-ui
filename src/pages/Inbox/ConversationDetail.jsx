@@ -29,8 +29,8 @@ function roleLabel(role) {
 function statusLabel(status) {
   const map = {
     open: "Open",
-    bot_replied: "Dijawab Bot",
-    handoff: "Perlu Handoff",
+    bot_replied: "Dijawab Asisten",
+    handoff: "Perlu Owner",
     resolved: "Resolved",
     failed: "Failed",
   };
@@ -110,10 +110,10 @@ export default function ConversationDetail() {
 
         <div style={styles.actions}>
           <button style={styles.secondaryButton} onClick={markHandoff} disabled={busy}>
-            Mark Handoff
+            Tandai Perlu Owner
           </button>
           <button style={styles.primaryButton} onClick={resolve} disabled={busy}>
-            Mark Resolved
+            Tandai Selesai
           </button>
         </div>
       </div>

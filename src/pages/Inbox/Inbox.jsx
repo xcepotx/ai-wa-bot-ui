@@ -17,8 +17,8 @@ function formatDate(value) {
 function statusLabel(status) {
   const map = {
     open: "Open",
-    bot_replied: "Dijawab Bot",
-    handoff: "Perlu Handoff",
+    bot_replied: "Dijawab Asisten",
+    handoff: "Perlu Owner",
     resolved: "Resolved",
     failed: "Failed",
   };
@@ -89,7 +89,7 @@ export default function Inbox() {
     <div style={styles.page}>
       <div style={styles.header}>
         <div>
-          <p style={styles.eyebrow}>AI WA Bot</p>
+          <p style={styles.eyebrow}>Lapakin Asisten</p>
           <h1 style={styles.title}>Inbox Percakapan</h1>
           <p style={styles.subtitle}>
             Pantau hasil simulator, status handoff, dan riwayat chat pelanggan.
@@ -139,8 +139,8 @@ export default function Inbox() {
           style={styles.select}
         >
           <option value="">Semua Status</option>
-          <option value="bot_replied">Dijawab Bot</option>
-          <option value="handoff">Perlu Handoff</option>
+          <option value="bot_replied">Dijawab Asisten</option>
+          <option value="handoff">Perlu Owner</option>
           <option value="resolved">Resolved</option>
           <option value="failed">Failed</option>
         </select>
@@ -162,7 +162,7 @@ export default function Inbox() {
                 <tr>
                   <th style={styles.th}>Customer</th>
                   <th style={styles.th}>Pesan Terakhir</th>
-                  <th style={styles.th}>Balasan Bot</th>
+                  <th style={styles.th}>Balasan Asisten</th>
                   <th style={styles.th}>Intent</th>
                   <th style={styles.th}>Status</th>
                   <th style={styles.th}>Update</th>

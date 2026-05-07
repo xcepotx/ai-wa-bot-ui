@@ -25,7 +25,7 @@ function AuthLayout({ children, title, sub }) {
           }}>
             <Bot size={28} color="#fff" />
           </div>
-          <h1 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: 6 }}>AI WA Bot</h1>
+          <h1 style={{ color: '#fff', fontSize: '1.5rem', marginBottom: 6 }}>Lapakin Asisten</h1>
           <p style={{ color: '#94a3b8', fontSize: '0.875rem', margin: 0 }}>{sub}</p>
         </div>
 
@@ -66,7 +66,7 @@ export function Login() {
   };
 
   return (
-    <AuthLayout title="Masuk ke akun" sub="Kelola AI WA Bot kamu">
+    <AuthLayout title="Masuk ke akun" sub="Kelola Lapakin Asisten kamu">
       <form onSubmit={handleSubmit}>
         <div className="field">
           <label>Email</label>
@@ -138,7 +138,7 @@ export function Register() {
   };
 
   return (
-    <AuthLayout title="Buat akun baru" sub="Mulai pakai AI WA Bot gratis">
+    <AuthLayout title="Buat akun baru" sub="Mulai pakai Lapakin Asisten gratis">
       <form onSubmit={handleSubmit}>
         <div className="grid-2">
           <div className="field">

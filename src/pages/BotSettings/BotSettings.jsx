@@ -15,7 +15,7 @@ const MODES = [
   { value: 'off',                   label: 'Off',               desc: 'Bot tidak aktif', color: 'var(--text-muted)' },
   { value: 'simulator_only',        label: 'Simulator Only',    desc: 'Hanya bisa test di simulator', color: 'var(--accent)' },
   { value: 'draft_only',            label: 'Draft Mode',        desc: 'Bot buat draft balasan (tidak auto-kirim)', color: 'var(--brand)' },
-  { value: 'auto_reply',            label: 'Auto Reply',        desc: 'Bot balas otomatis ke WA pelanggan', color: 'var(--brand)' },
+  { value: 'auto_reply',            label: 'Balas Otomatis',        desc: 'Bot balas otomatis ke WA pelanggan', color: 'var(--brand)' },
 ];
 
 export default function BotSettings() {
@@ -61,7 +61,7 @@ export default function BotSettings() {
     setSaving(true);
     try {
       await botApi.updateSettings(form);
-      toast.success('Bot settings berhasil disimpan');
+      toast.success('Pengaturan Asisten berhasil disimpan');
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Gagal menyimpan settings');
     } finally {
@@ -79,7 +79,7 @@ export default function BotSettings() {
     <div>
       <div className="page-header">
         <div className="page-header-left">
-          <h1>Bot Settings</h1>
+          <h1>Pengaturan Asisten</h1>
           <p>Konfigurasi persona, mode, dan perilaku bot</p>
         </div>
         <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
@@ -157,7 +157,7 @@ export default function BotSettings() {
               </div>
               {readiness && !readiness.can_auto_reply && form.mode === 'auto_reply' && (
                 <div className="alert alert-warning" style={{ marginTop: 12, marginBottom: 0 }}>
-                  ⚠ Readiness score {readiness.score}/100. Minimal 80 untuk auto-reply.
+                  ⚠ Readiness score {readiness.score}/100. Minimal 80 untuk balas otomatis.
                 </div>
               )}
             </div>

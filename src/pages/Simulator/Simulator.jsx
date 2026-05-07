@@ -13,8 +13,8 @@ function formatTime(date = new Date()) {
 
 function statusLabel(status) {
   const map = {
-    bot_replied: 'Dijawab Bot',
-    handoff: 'Perlu Handoff',
+    bot_replied: 'Dijawab Asisten',
+    handoff: 'Perlu Owner',
     resolved: 'Resolved',
     failed: 'Failed',
     open: 'Open',
@@ -153,7 +153,7 @@ export default function Simulator() {
     <div>
       <div className="page-header">
         <div className="page-header-left">
-          <h1>Simulator AI WA Bot</h1>
+          <h1>Simulator Lapakin Asisten</h1>
           <p>Test multi-turn conversation sebelum bot dipakai di WhatsApp real.</p>
         </div>
 
@@ -276,7 +276,7 @@ export default function Simulator() {
                         marginBottom: 6,
                       }}>
                         {isCustomer ? <User size={13} /> : isBot ? <Bot size={13} /> : <AlertTriangle size={13} />}
-                        <strong>{isCustomer ? customerName || 'Pelanggan' : isBot ? 'AI WA Bot' : 'System'}</strong>
+                        <strong>{isCustomer ? customerName || 'Pelanggan' : isBot ? 'Lapakin Asisten' : 'System'}</strong>
                         <span>·</span>
                         <span>{formatTime(msg.created_at)}</span>
                       </div>
@@ -315,7 +315,7 @@ export default function Simulator() {
                   padding: '12px 14px',
                   color: 'var(--text-muted)',
                 }}>
-                  Bot sedang mengetik...
+                  Asisten sedang mengetik...
                 </div>
               </div>
             )}

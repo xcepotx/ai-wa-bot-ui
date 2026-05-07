@@ -77,7 +77,7 @@ export default function AdminLayout() {
         <div style={styles.brand}>
           <div style={styles.brandIcon}>⚙️</div>
           <div>
-            <div style={styles.brandTitle}>AI WA Bot</div>
+            <div style={styles.brandTitle}>Lapakin Asisten</div>
             <div style={styles.brandSub}>Admin Monitor</div>
           </div>
         </div>

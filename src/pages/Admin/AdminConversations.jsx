@@ -67,7 +67,7 @@ export default function AdminConversations() {
         </form>
         <select className="form-input" value={status} onChange={(e) => setStatus(e.target.value)} style={{ maxWidth: 220 }}>
           <option value="">Semua Status</option>
-          <option value="bot_replied">Dijawab Bot</option>
+          <option value="bot_replied">Dijawab Asisten</option>
           <option value="handoff">Handoff</option>
           <option value="resolved">Resolved</option>
           <option value="failed">Failed</option>
