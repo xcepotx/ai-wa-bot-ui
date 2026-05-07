@@ -65,3 +65,13 @@ export const botApi = {
   simulatePing:   () => client.post('/bot-settings/simulate-ping'),
   simulate:       d  => client.post('/simulate', d),
 };
+
+
+export const adminApi = {
+  overview: () => client.get('/admin/overview'),
+  shops: params => client.get('/admin/shops', { params }),
+  conversations: params => client.get('/admin/conversations', { params }),
+  conversationDetail: sessionId => client.get(`/admin/conversations/${sessionId}`),
+  markHandoff: (sessionId, note) => client.post(`/admin/conversations/${sessionId}/handoff`, { note }),
+  resolve: (sessionId, note) => client.post(`/admin/conversations/${sessionId}/resolve`, { note }),
+};

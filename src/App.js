@@ -13,6 +13,11 @@ import Simulator from './pages/Simulator/Simulator';
 import Connect from './pages/Connect/Connect';
 import ConversationsInbox from './pages/Inbox/Inbox';
 import ConversationDetail from './pages/Inbox/ConversationDetail';
+import AdminLayout from './pages/Admin/AdminLayout';
+import AdminOverview from './pages/Admin/AdminOverview';
+import AdminShops from './pages/Admin/AdminShops';
+import AdminConversations from './pages/Admin/AdminConversations';
+import AdminConversationDetail from './pages/Admin/AdminConversationDetail';
 
 export default function App() {
   return (
@@ -33,6 +38,14 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/connect" element={<Connect />} />
+
+
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<AdminOverview />} />
+          <Route path="shops" element={<AdminShops />} />
+          <Route path="conversations" element={<AdminConversations />} />
+          <Route path="conversations/:sessionId" element={<AdminConversationDetail />} />
+        </Route>
 
         <Route path="/dashboard" element={<Layout />}>
           <Route index element={<Overview />} />

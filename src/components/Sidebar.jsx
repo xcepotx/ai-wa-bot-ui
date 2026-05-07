@@ -3,7 +3,7 @@ import { authApi } from '../api/client';
 import toast from 'react-hot-toast';
 import {
   LayoutDashboard, Store, Package, MessageSquare,
-  Settings, Bot, LogOut, Zap, Inbox
+  Settings, Bot, LogOut, Zap, Inbox, ShieldCheck
 } from 'lucide-react';
 
 const NAV = [
@@ -59,6 +59,28 @@ export default function Sidebar({ user }) {
 
       {/* Nav */}
       <nav style={{ flex: 1, padding: '12px 10px', overflowY: 'auto' }}>
+        {user?.role === 'admin' && (
+          <NavLink
+            to="/admin"
+            style={({ isActive }) => ({
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: '9px 12px',
+              borderRadius: 8,
+              marginBottom: 8,
+              color: isActive ? '#fff' : 'var(--text-sidebar)',
+              background: isActive ? '#2563eb' : 'rgba(37,99,235,0.12)',
+              fontWeight: 700,
+              fontSize: '0.875rem',
+              textDecoration: 'none',
+            })}
+          >
+            <ShieldCheck size={16} />
+            Admin Monitor
+          </NavLink>
+        )}
+
         {NAV.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
