@@ -18,6 +18,7 @@ import AdminOverview from './pages/Admin/AdminOverview';
 import AdminShops from './pages/Admin/AdminShops';
 import AdminConversations from './pages/Admin/AdminConversations';
 import AdminConversationDetail from './pages/Admin/AdminConversationDetail';
+import ProviderReadiness from './pages/ProviderReadiness/ProviderReadiness';
 
 export default function App() {
   return (
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="faqs" element={<FAQs />} />
           <Route path="bot" element={<BotSettings />} />
           <Route path="simulator" element={<Simulator />} />
+          <Route path="provider-readiness" element={<ProviderReadiness />} />
           <Route path="inbox" element={<ConversationsInbox />} />
           <Route path="inbox/:sessionId" element={<ConversationDetail />} />
         </Route>

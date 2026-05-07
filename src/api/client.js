@@ -68,10 +68,20 @@ export const botApi = {
 
 
 export const adminApi = {
+  shopProviderReadiness: shopId => client.get(`/admin/shops/${shopId}/provider-readiness`),
+  systemStatus: () => client.get('/admin/system-status'),
+  updateSystemStatus: d => client.put('/admin/system-status', d),
+  forceDisableShop: (shopId, reason) => client.post(`/admin/shops/${shopId}/force-disable`, { reason }),
+  forceEnableShop: (shopId, reason) => client.post(`/admin/shops/${shopId}/force-enable`, { reason }),
   overview: () => client.get('/admin/overview'),
   shops: params => client.get('/admin/shops', { params }),
   conversations: params => client.get('/admin/conversations', { params }),
   conversationDetail: sessionId => client.get(`/admin/conversations/${sessionId}`),
   markHandoff: (sessionId, note) => client.post(`/admin/conversations/${sessionId}/handoff`, { note }),
   resolve: (sessionId, note) => client.post(`/admin/conversations/${sessionId}/resolve`, { note }),
+};
+
+
+export const providerApi = {
+  readiness: () => client.get('/provider-readiness'),
 };
