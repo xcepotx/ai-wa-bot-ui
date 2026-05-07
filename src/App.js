@@ -10,6 +10,7 @@ import Products  from './pages/Products/Products';
 import FAQs      from './pages/FAQs/FAQs';
 import BotSettings from './pages/BotSettings/BotSettings';
 import Simulator from './pages/Simulator/Simulator';
+import Connect from './pages/Connect/Connect';
 
 function Inbox() {
   return (
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/login"    element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/connect" element={<Connect />} />
 
         <Route path="/dashboard" element={<Layout />}>
           <Route index          element={<Overview />} />
