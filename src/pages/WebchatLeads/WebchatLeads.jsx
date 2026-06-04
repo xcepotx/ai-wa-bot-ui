@@ -2,6 +2,16 @@ import { useEffect, useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
 import { webchatLeadApi, spacecraftApi } from '../../api/client';
 
+const STATUS_OPTIONS = [
+  ['contact_requested', 'Minta Kontak'],
+  ['new', 'New'],
+  ['notified', 'Notified'],
+  ['followed_up', 'Followed Up'],
+  ['won', 'Won'],
+  ['lost', 'Lost'],
+  ['closed', 'Closed'],
+];
+
 function formatDate(value) {
   if (!value) return '-';
   try {
@@ -11,13 +21,30 @@ function formatDate(value) {
   }
 }
 
+function normalizeWaPhone(value) {
+  if (!value) return '';
+  let phone = String(value).replace(/[^\d+]/g, '');
+  if (phone.startsWith('+')) phone = phone.slice(1);
+  if (phone.startsWith('0')) phone = `62${phone.slice(1)}`;
+  return phone;
+}
+
+function waLink(phone, need) {
+  const clean = normalizeWaPhone(phone);
+  if (!clean) return '';
+  const text = encodeURIComponent(`Halo kak, saya admin SpaceCraft. Saya mau follow up kebutuhan: ${need || 'custom 3D print'}`);
+  return `https://wa.me/${clean}?text=${text}`;
+}
+
 function badge(status) {
   const map = {
     contact_requested: ['Minta Kontak', '#eff6ff', '#1d4ed8'],
     new: ['New', '#fef9c3', '#92400e'],
     notified: ['Notified', '#dcfce7', '#15803d'],
     followed_up: ['Followed Up', '#f1f5f9', '#475569'],
-    closed: ['Closed', '#f1f5f9', '#475569'],
+    won: ['Won', '#dcfce7', '#15803d'],
+    lost: ['Lost', '#fee2e2', '#b91c1c'],
+    closed: ['Closed', '#e2e8f0', '#334155'],
   };
   const [label, bg, color] = map[status] || [status || 'Unknown', '#f1f5f9', '#475569'];
   return <span style={{ ...styles.badge, background: bg, color }}>{label}</span>;
@@ -94,6 +121,7 @@ export default function WebchatLeads() {
   const [selected, setSelected] = useState(null);
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState('');
 
   async function load() {
@@ -105,7 +133,7 @@ export default function WebchatLeads() {
       setStatusCounts(res.data.status_counts || []);
       setTotal(res.data.total || 0);
     } catch (err) {
-      setError(err.response?.data?.detail || err.message || 'Gagal memuat webchat leads');
+      setError(err.response?.data?.detail || err.message || 'Gagal memuat leads');
     } finally {
       setLoading(false);
     }
@@ -114,28 +142,36 @@ export default function WebchatLeads() {
   async function openDetail(leadId) {
     setSelected(leadId);
     setDetail(null);
+    setDetailLoading(true);
     try {
       const res = await webchatLeadApi.detail(leadId);
       setDetail(res.data);
     } catch (err) {
       toast.error(err.response?.data?.detail || err.message || 'Gagal membuka detail lead');
       setSelected(null);
+    } finally {
+      setDetailLoading(false);
     }
   }
 
-  async function markFollowedUp(leadId) {
-    const note = window.prompt('Catatan follow up:', 'Sudah di-follow up via WhatsApp');
+  async function updateLeadStatus(leadId, nextStatus, label, defaultNote) {
+    const note = window.prompt(`Catatan untuk status ${label}:`, defaultNote || `Lead ditandai ${label}`);
     if (note === null) return;
 
     try {
-      await webchatLeadApi.markFollowedUp(leadId, note);
-      toast.success('Lead ditandai followed up');
-      setSelected(null);
-      setDetail(null);
+      await webchatLeadApi.updateStatus(leadId, nextStatus, note);
+      toast.success(`Lead ditandai ${label}`);
       await load();
+      if (selected === leadId) {
+        await openDetail(leadId);
+      }
     } catch (err) {
-      toast.error(err.response?.data?.detail || err.message || 'Gagal update lead');
+      toast.error(err.response?.data?.detail || err.message || 'Gagal update status lead');
     }
+  }
+
+  function markFollowedUp(leadId) {
+    updateLeadStatus(leadId, 'followed_up', 'Followed Up', 'Sudah di-follow up via WhatsApp');
   }
 
   useEffect(() => {
@@ -144,7 +180,7 @@ export default function WebchatLeads() {
   }, [status, q]);
 
   const stats = useMemo(() => {
-    const out = { total, contact_requested: 0, new: 0, notified: 0, followed_up: 0 };
+    const out = { total, contact_requested: 0, new: 0, notified: 0, followed_up: 0, won: 0, lost: 0, closed: 0 };
     for (const row of statusCounts) out[row.status] = row.count;
     return out;
   }, [statusCounts, total]);
@@ -154,13 +190,16 @@ export default function WebchatLeads() {
     setQ(queryInput.trim());
   }
 
+  const activeLead = detail?.lead;
+  const activeWaUrl = activeLead?.customer_phone ? waLink(activeLead.customer_phone, activeLead.need_summary) : '';
+
   return (
     <div style={styles.page}>
       <div style={styles.header}>
         <div>
-          <p style={styles.eyebrow}>SpaceCraft Webchat</p>
-          <h1 style={styles.title}>Webchat Leads</h1>
-          <p style={styles.subtitle}>Lead dari Chat Assistant website yang butuh follow up admin.</p>
+          <p style={styles.eyebrow}>Sales Leads</p>
+          <h1 style={styles.title}>Leads</h1>
+          <p style={styles.subtitle}>Lead dari webchat yang butuh follow up admin.</p>
         </div>
         <button style={styles.refreshButton} onClick={load} disabled={loading}>
           {loading ? 'Memuat...' : 'Refresh'}
@@ -172,9 +211,9 @@ export default function WebchatLeads() {
       <div style={styles.statsGrid}>
         <div style={styles.statCard}><span>Total</span><strong>{stats.total}</strong></div>
         <div style={styles.statCard}><span>Minta Kontak</span><strong>{stats.contact_requested || 0}</strong></div>
-        <div style={styles.statCard}><span>New</span><strong>{stats.new || 0}</strong></div>
-        <div style={styles.statCard}><span>Notified</span><strong>{stats.notified || 0}</strong></div>
         <div style={styles.statCard}><span>Followed Up</span><strong>{stats.followed_up || 0}</strong></div>
+        <div style={styles.statCard}><span>Won</span><strong>{stats.won || 0}</strong></div>
+        <div style={styles.statCard}><span>Lost</span><strong>{stats.lost || 0}</strong></div>
       </div>
 
       <div style={styles.toolbar}>
@@ -182,18 +221,16 @@ export default function WebchatLeads() {
           <input
             value={queryInput}
             onChange={(e) => setQueryInput(e.target.value)}
-            placeholder="Cari nama, nomor WA, kebutuhan..."
+            placeholder="Cari nama, nomor WA, kebutuhan, session..."
             style={styles.input}
           />
           <button type="submit" style={styles.primaryButton}>Cari</button>
         </form>
         <select value={status} onChange={(e) => setStatus(e.target.value)} style={styles.select}>
           <option value="">Semua Status</option>
-          <option value="contact_requested">Contact Requested</option>
-          <option value="new">New</option>
-          <option value="notified">Notified</option>
-          <option value="followed_up">Followed Up</option>
-          <option value="closed">Closed</option>
+          {STATUS_OPTIONS.map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
         </select>
       </div>
 
@@ -203,7 +240,7 @@ export default function WebchatLeads() {
         {loading ? (
           <div style={styles.empty}>Memuat leads...</div>
         ) : items.length === 0 ? (
-          <div style={styles.empty}>Belum ada webchat lead.</div>
+          <div style={styles.empty}>Belum ada lead.</div>
         ) : (
           <div style={styles.tableWrap}>
             <table style={styles.table}>
@@ -218,37 +255,53 @@ export default function WebchatLeads() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((item) => (
-                  <tr
-                    key={item.lead_id}
-                    style={{ ...styles.tr, cursor: 'pointer' }}
-                    onClick={() => openDetail(item.lead_id)}
-                    title="Klik untuk membuka detail lead"
-                  >
-                    <td style={styles.td}>
-                      <strong>{item.customer_name || 'Belum disebutkan'}</strong>
-                      <div style={styles.muted}>{item.customer_phone || '-'}</div>
-                    </td>
-                    <td style={styles.td}>
-                      <div style={styles.clip}>{item.need_summary || item.last_message || '-'}</div>
-                      <div style={styles.muted}>{item.page_url || '-'}</div>
-                    </td>
-                    <td style={styles.td}>{badge(item.status)}</td>
-                    <td style={styles.td}><code style={styles.code}>{item.intent || '-'}</code></td>
-                    <td style={styles.td}>{formatDate(item.updated_at)}</td>
-                    <td style={styles.td}>
-                      <button
-                        style={styles.linkButton}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openDetail(item.lead_id);
-                        }}
-                      >
-                        Detail
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {items.map((item) => {
+                  const itemWaUrl = item.customer_phone ? waLink(item.customer_phone, item.need_summary) : '';
+                  return (
+                    <tr
+                      key={item.lead_id}
+                      style={{ ...styles.tr, cursor: 'pointer' }}
+                      onClick={() => openDetail(item.lead_id)}
+                      title="Klik untuk membuka detail lead"
+                    >
+                      <td style={styles.td}>
+                        <strong>{item.customer_name || 'Belum disebutkan'}</strong>
+                        <div style={styles.muted}>{item.customer_phone || '-'}</div>
+                      </td>
+                      <td style={styles.td}>
+                        <div style={styles.clip}>{item.need_summary || item.last_message || '-'}</div>
+                        <div style={styles.muted}>{item.page_url || '-'}</div>
+                      </td>
+                      <td style={styles.td}>{badge(item.status)}</td>
+                      <td style={styles.td}><code style={styles.code}>{item.intent || '-'}</code></td>
+                      <td style={styles.td}>{formatDate(item.updated_at)}</td>
+                      <td style={styles.td}>
+                        <div style={styles.rowActions}>
+                          <button
+                            style={styles.linkButton}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openDetail(item.lead_id);
+                            }}
+                          >
+                            Detail
+                          </button>
+                          {itemWaUrl && (
+                            <a
+                              href={itemWaUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={styles.waButtonSmall}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              WA
+                            </a>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -259,26 +312,64 @@ export default function WebchatLeads() {
         <div style={styles.modalOverlay} onClick={() => setSelected(null)}>
           <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div style={styles.modalHeader}>
-              <h2>Lead Detail</h2>
+              <div>
+                <h2 style={{ margin: 0 }}>Lead Detail</h2>
+                {activeLead && <div style={styles.muted}>{badge(activeLead.status)} · Updated {formatDate(activeLead.updated_at)}</div>}
+              </div>
               <button style={styles.refreshButton} onClick={() => setSelected(null)}>Tutup</button>
             </div>
 
-            {!detail ? (
+            {detailLoading || !detail ? (
               <div style={styles.empty}>Memuat detail...</div>
             ) : (
               <>
                 <div style={styles.detailGrid}>
-                  <div><span>Nama</span><strong>{detail.lead?.customer_name || '-'}</strong></div>
-                  <div><span>WA</span><strong>{detail.lead?.customer_phone || '-'}</strong></div>
-                  <div><span>Status</span><strong>{detail.lead?.status || '-'}</strong></div>
-                  <div><span>Session</span><strong>{detail.lead?.session_id || '-'}</strong></div>
+                  <div><span>Nama</span><strong>{activeLead?.customer_name || '-'}</strong></div>
+                  <div><span>WA</span><strong>{activeLead?.customer_phone || '-'}</strong></div>
+                  <div><span>Intent</span><strong>{activeLead?.intent || '-'}</strong></div>
+                  <div><span>Session</span><strong>{activeLead?.session_id || '-'}</strong></div>
+                </div>
+
+                <div style={styles.modalActions}>
+                  {activeWaUrl && (
+                    <a href={activeWaUrl} target="_blank" rel="noopener noreferrer" style={styles.waButton}>
+                      Chat WhatsApp
+                    </a>
+                  )}
+                  {activeLead?.status !== 'followed_up' && (
+                    <button style={styles.secondaryButton} onClick={() => markFollowedUp(activeLead.lead_id)}>
+                      Mark Followed Up
+                    </button>
+                  )}
+                  {activeLead?.status !== 'won' && (
+                    <button style={styles.primaryButton} onClick={() => updateLeadStatus(activeLead.lead_id, 'won', 'Won', 'Lead berhasil closing / order lanjut')}>
+                      Mark Won
+                    </button>
+                  )}
+                  {activeLead?.status !== 'lost' && (
+                    <button style={styles.dangerButton} onClick={() => updateLeadStatus(activeLead.lead_id, 'lost', 'Lost', 'Lead tidak lanjut / batal')}>
+                      Mark Lost
+                    </button>
+                  )}
+                  {activeLead?.status !== 'closed' && (
+                    <button style={styles.darkButton} onClick={() => updateLeadStatus(activeLead.lead_id, 'closed', 'Closed', 'Lead ditutup')}>
+                      Close
+                    </button>
+                  )}
                 </div>
 
                 <h3 style={styles.sectionTitle}>Kebutuhan</h3>
-                <div style={styles.box}>{detail.lead?.need_summary || '-'}</div>
+                <div style={styles.box}>{activeLead?.need_summary || '-'}</div>
+
+                {(activeLead?.follow_up_note || activeLead?.status_note) && (
+                  <>
+                    <h3 style={styles.sectionTitle}>Catatan Follow-up</h3>
+                    <div style={styles.noteBox}>{activeLead?.follow_up_note || activeLead?.status_note}</div>
+                  </>
+                )}
 
                 <h3 style={styles.sectionTitle}>Ringkasan Percakapan</h3>
-                <pre style={styles.pre}>{detail.lead?.conversation_summary || '-'}</pre>
+                <pre style={styles.pre}>{activeLead?.conversation_summary || '-'}</pre>
 
                 <h3 style={styles.sectionTitle}>Messages</h3>
                 <div style={styles.messages}>
@@ -289,12 +380,6 @@ export default function WebchatLeads() {
                     </div>
                   ))}
                 </div>
-
-                {detail.lead?.status !== 'followed_up' && (
-                  <button style={{ ...styles.primaryButton, marginTop: 16 }} onClick={() => markFollowedUp(detail.lead.lead_id)}>
-                    Mark Followed Up
-                  </button>
-                )}
               </>
             )}
           </div>
@@ -311,7 +396,10 @@ const styles = {
   title: { margin: '4px 0', fontSize: 30, lineHeight: 1.2 },
   subtitle: { margin: 0, color: '#64748b' },
   refreshButton: { border: '1px solid #cbd5e1', background: '#fff', borderRadius: 12, padding: '10px 14px', cursor: 'pointer', fontWeight: 700 },
-  primaryButton: { border: 0, background: '#16a34a', color: '#fff', borderRadius: 12, padding: '10px 14px', cursor: 'pointer', fontWeight: 800 },
+  primaryButton: { border: 0, background: '#16a34a', color: '#fff', borderRadius: 12, padding: '10px 14px', cursor: 'pointer', fontWeight: 800, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' },
+  secondaryButton: { border: '1px solid #cbd5e1', background: '#fff', color: '#0f172a', borderRadius: 12, padding: '10px 14px', cursor: 'pointer', fontWeight: 800 },
+  dangerButton: { border: 0, background: '#ef4444', color: '#fff', borderRadius: 12, padding: '10px 14px', cursor: 'pointer', fontWeight: 800 },
+  darkButton: { border: 0, background: '#334155', color: '#fff', borderRadius: 12, padding: '10px 14px', cursor: 'pointer', fontWeight: 800 },
   statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 12, marginBottom: 16 },
   statCard: { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: 16, display: 'grid', gap: 6 },
   toolbar: { display: 'flex', gap: 12, marginBottom: 16 },
@@ -333,15 +421,20 @@ const styles = {
   clip: { maxWidth: 420, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   badge: { display: 'inline-flex', borderRadius: 999, padding: '4px 9px', fontSize: 12, fontWeight: 800 },
   code: { background: '#f1f5f9', borderRadius: 8, padding: '3px 6px' },
+  rowActions: { display: 'flex', gap: 6, alignItems: 'center' },
   linkButton: { border: '1px solid #cbd5e1', background: '#fff', borderRadius: 10, padding: '8px 10px', cursor: 'pointer', fontWeight: 800, color: '#2563eb' },
+  waButtonSmall: { background: '#dcfce7', color: '#15803d', borderRadius: 10, padding: '8px 10px', fontWeight: 900, textDecoration: 'none' },
+  waButton: { background: '#16a34a', color: '#fff', borderRadius: 12, padding: '10px 14px', fontWeight: 900, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' },
   empty: { padding: 24, textAlign: 'center', color: '#64748b' },
   error: { background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 12, marginBottom: 14 },
   modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.55)', zIndex: 1000, padding: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  modal: { width: 'min(920px, 96vw)', maxHeight: '90vh', overflow: 'auto', background: '#fff', borderRadius: 20, padding: 22, boxShadow: '0 24px 80px rgba(15,23,42,0.25)' },
+  modal: { width: 'min(960px, 96vw)', maxHeight: '90vh', overflow: 'auto', background: '#fff', borderRadius: 20, padding: 22, boxShadow: '0 24px 80px rgba(15,23,42,0.25)' },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
   detailGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, marginTop: 14 },
+  modalActions: { display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 },
   sectionTitle: { marginTop: 18, marginBottom: 8 },
   box: { background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 12 },
+  noteBox: { background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', borderRadius: 12, padding: 12 },
   pre: { whiteSpace: 'pre-wrap', background: '#0f172a', color: '#e2e8f0', borderRadius: 14, padding: 14, fontSize: 13 },
   messages: { display: 'grid', gap: 8 },
   messageRow: { background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 12 },

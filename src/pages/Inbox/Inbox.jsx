@@ -89,8 +89,8 @@ export default function Inbox() {
     <div style={styles.page}>
       <div style={styles.header}>
         <div>
-          <p style={styles.eyebrow}>Lapakin Asisten</p>
-          <h1 style={styles.title}>Inbox Percakapan</h1>
+          <p style={styles.eyebrow}>Wabot Assistant</p>
+          <h1 style={styles.title}>Conversations</h1>
           <p style={styles.subtitle}>
             Pantau hasil simulator, status handoff, dan riwayat chat pelanggan.
           </p>

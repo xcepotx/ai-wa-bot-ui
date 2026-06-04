@@ -206,7 +206,7 @@ export default function ConversationDetail() {
               Buka Simulator
             </Link>
             <Link to="/dashboard/inbox" style={styles.footerLink}>
-              Kembali ke Inbox
+              Kembali ke Conversations
             </Link>
           </div>
         </>

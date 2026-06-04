@@ -60,7 +60,7 @@ export default function ProviderReadiness() {
     <div>
       <div className="page-header">
         <div className="page-header-left">
-          <h1>Provider Readiness</h1>
+          <h1>Channel Readiness</h1>
           <p>Checklist kesiapan sebelum asisten toko dihubungkan ke WhatsApp real.</p>
         </div>
 

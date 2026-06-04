@@ -47,7 +47,7 @@ export default function AdminOverview() {
       <div style={styles.header}>
         <div>
           <p style={styles.eyebrow}>Admin Monitor</p>
-          <h1 style={styles.title}>Lapakin Asisten Overview</h1>
+          <h1 style={styles.title}>Wabot Assistant Overview</h1>
           <p style={styles.subtitle}>Pantau toko, conversation, handoff, dan activity bot lintas tenant.</p>
         </div>
         <button className="btn btn-secondary" onClick={load}>Refresh</button>

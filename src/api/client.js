@@ -87,6 +87,7 @@ export const webchatLeadApi = {
   list: params => client.get('/webchat-leads', { params }),
   detail: leadId => client.get(`/webchat-leads/${leadId}`),
   markFollowedUp: (leadId, note) => client.post(`/webchat-leads/${leadId}/mark-followed-up`, { note }),
+  updateStatus: (leadId, status, note) => client.post(`/webchat-leads/${leadId}/status`, { status, note }),
 };
 
 export const spacecraftApi = {

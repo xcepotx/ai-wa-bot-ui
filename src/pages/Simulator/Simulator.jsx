@@ -153,14 +153,14 @@ export default function Simulator() {
     <div>
       <div className="page-header">
         <div className="page-header-left">
-          <h1>Simulator Lapakin Asisten</h1>
+          <h1>Simulator Wabot Assistant</h1>
           <p>Test multi-turn conversation sebelum bot dipakai di WhatsApp real.</p>
         </div>
 
         <div style={{ display: 'flex', gap: 10 }}>
           <Link to="/dashboard/inbox" className="btn btn-secondary">
             <Inbox size={16} />
-            Buka Inbox
+            Buka Conversations
           </Link>
           <button className="btn btn-secondary" onClick={startNewSession}>
             <RotateCcw size={16} />
@@ -276,7 +276,7 @@ export default function Simulator() {
                         marginBottom: 6,
                       }}>
                         {isCustomer ? <User size={13} /> : isBot ? <Bot size={13} /> : <AlertTriangle size={13} />}
-                        <strong>{isCustomer ? customerName || 'Pelanggan' : isBot ? 'Lapakin Asisten' : 'System'}</strong>
+                        <strong>{isCustomer ? customerName || 'Pelanggan' : isBot ? 'Wabot Assistant' : 'System'}</strong>
                         <span>·</span>
                         <span>{formatTime(msg.created_at)}</span>
                       </div>
@@ -423,7 +423,7 @@ export default function Simulator() {
             <h3 style={{ marginTop: 0 }}>Catatan</h3>
             <p style={{ color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: 0 }}>
               Semua pesan simulator sekarang tersimpan sebagai conversation session.
-              Setelah kirim pesan, buka Inbox untuk melihat riwayat dan melakukan handoff/resolve.
+              Setelah kirim pesan, buka Conversations untuk melihat riwayat dan melakukan handoff/resolve.
             </p>
           </div>
         </div>

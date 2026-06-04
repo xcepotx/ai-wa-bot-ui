@@ -25,13 +25,13 @@ export default function Overview() {
       <div className="page-header">
         <div className="page-header-left">
           <h1>Selamat datang! 👋</h1>
-          <p>Mulai setup Lapakin Asisten kamu</p>
+          <p>Mulai setup Wabot Assistant kamu</p>
         </div>
       </div>
       <div className="card" style={{ maxWidth: 480, textAlign: 'center', padding: 40 }}>
         <Bot size={48} color="var(--brand)" style={{ margin: '0 auto 16px' }} />
         <h2 style={{ marginBottom: 8 }}>Buat toko dulu</h2>
-        <p style={{ marginBottom: 24 }}>Sebelum bisa pakai Lapakin Asisten, kamu perlu setup profil toko terlebih dahulu.</p>
+        <p style={{ marginBottom: 24 }}>Sebelum bisa pakai Wabot Assistant, kamu perlu setup profil toko terlebih dahulu.</p>
         <Link to="/dashboard/shop" className="btn btn-primary btn-lg">
           Setup Toko <ArrowRight size={16} />
         </Link>
@@ -47,7 +47,7 @@ export default function Overview() {
       <div className="page-header">
         <div className="page-header-left">
           <h1>Overview</h1>
-          <p>Status dan readiness Lapakin Asisten kamu</p>
+          <p>Status dan readiness Wabot Assistant kamu</p>
         </div>
         <Link to="/dashboard/simulator" className="btn btn-primary">
           <Zap size={15} /> Coba Simulator
