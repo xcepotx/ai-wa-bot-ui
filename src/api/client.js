@@ -93,6 +93,8 @@ export const webchatLeadApi = {
 export const spacecraftApi = {
   syncStatus: () => client.get('/spacecraft/sync-status'),
   syncProducts: () => client.post('/spacecraft/sync-products'),
+  products: params => client.get('/spacecraft/products', { params }),
+  syncHistory: params => client.get('/spacecraft/sync-history', { params }),
 };
 
 export const providerApi = {

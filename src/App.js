@@ -20,6 +20,7 @@ import AdminConversations from './pages/Admin/AdminConversations';
 import AdminConversationDetail from './pages/Admin/AdminConversationDetail';
 import ProviderReadiness from './pages/ProviderReadiness/ProviderReadiness';
 import WebchatLeads from './pages/WebchatLeads/WebchatLeads';
+import SpaceCraftProducts from './pages/SpaceCraftProducts/SpaceCraftProducts';
 
 export default function App() {
   return (
@@ -53,6 +54,7 @@ export default function App() {
           <Route index element={<Overview />} />
           <Route path="shop" element={<Shop />} />
           <Route path="products" element={<Products />} />
+            <Route path="spacecraft-products" element={<SpaceCraftProducts />} />
           <Route path="faqs" element={<FAQs />} />
           <Route path="bot" element={<BotSettings />} />
           <Route path="simulator" element={<Simulator />} />

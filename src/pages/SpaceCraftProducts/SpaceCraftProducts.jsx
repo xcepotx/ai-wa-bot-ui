@@ -106,9 +106,9 @@ export default function SpaceCraftProducts() {
     <div style={styles.page}>
       <div style={styles.header}>
         <div>
-          <p style={styles.eyebrow}>SpaceCraft Catalog</p>
-          <h1 style={styles.title}>Synced Products</h1>
-          <p style={styles.subtitle}>Produk SpaceCraft yang sedang dibaca Wabot untuk menjawab chat pelanggan.</p>
+          <p style={styles.eyebrow}>Katalog Terhubung</p>
+          <h1 style={styles.title}>Produk SpaceCraft</h1>
+          <p style={styles.subtitle}>Katalog dari spacecraft.my.id yang dibaca Wabot untuk menjawab chat pelanggan.</p>
         </div>
         <div style={styles.headerActions}>
           <button style={styles.refreshButton} onClick={load} disabled={loading}>
@@ -130,7 +130,7 @@ export default function SpaceCraftProducts() {
 
       <div style={styles.syncCard}>
         <div>
-          <p style={styles.eyebrow}>Sync History</p>
+          <p style={styles.eyebrow}>Riwayat Sync</p>
           <h2 style={styles.cardTitle}>{latestEvent ? eventLabel(latestEvent.type) : 'Belum ada event sync'}</h2>
           <p style={styles.subtitle}>
             Last: {formatDate(latestEvent?.created_at)} · seen {latestEvent?.payload?.seen ?? '-'} · modified {latestEvent?.payload?.modified ?? '-'}

@@ -9,7 +9,8 @@ import {
 const NAV = [
   { to: '/dashboard',          icon: LayoutDashboard, label: 'Overview' },
   { to: '/dashboard/shop',     icon: Store,           label: 'Profil Toko' },
-  { to: '/dashboard/products', icon: Package,         label: 'Produk' },
+  { to: '/dashboard/products', icon: Package,         label: 'Produk Manual' },
+  { to: '/dashboard/spacecraft-products', icon: Package,         label: 'Produk SpaceCraft' },
   { to: '/dashboard/faqs',     icon: MessageSquare,   label: 'Knowledge Base' },
   { to: '/dashboard/bot',      icon: Bot,             label: 'Pengaturan Bot' },
   { to: '/dashboard/simulator',icon: Zap,             label: 'Simulator' },
