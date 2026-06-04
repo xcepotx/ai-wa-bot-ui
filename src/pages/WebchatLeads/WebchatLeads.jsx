@@ -219,7 +219,12 @@ export default function WebchatLeads() {
               </thead>
               <tbody>
                 {items.map((item) => (
-                  <tr key={item.lead_id} style={styles.tr}>
+                  <tr
+                    key={item.lead_id}
+                    style={{ ...styles.tr, cursor: 'pointer' }}
+                    onClick={() => openDetail(item.lead_id)}
+                    title="Klik untuk membuka detail lead"
+                  >
                     <td style={styles.td}>
                       <strong>{item.customer_name || 'Belum disebutkan'}</strong>
                       <div style={styles.muted}>{item.customer_phone || '-'}</div>
@@ -232,7 +237,15 @@ export default function WebchatLeads() {
                     <td style={styles.td}><code style={styles.code}>{item.intent || '-'}</code></td>
                     <td style={styles.td}>{formatDate(item.updated_at)}</td>
                     <td style={styles.td}>
-                      <button style={styles.linkButton} onClick={() => openDetail(item.lead_id)}>Detail</button>
+                      <button
+                        style={styles.linkButton}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDetail(item.lead_id);
+                        }}
+                      >
+                        Detail
+                      </button>
                     </td>
                   </tr>
                 ))}
