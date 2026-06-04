@@ -49,6 +49,8 @@ export const shopApi = {
   createProduct: d  => client.post('/shops/me/products', d),
   updateProduct: (id, d) => client.put(`/shops/me/products/${id}`, d),
   deleteProduct: id => client.delete(`/shops/me/products/${id}`),
+  updateMenuSettings: d => client.put('/shops/me/menu-settings', d),
+
 };
 
 export const faqApi = {

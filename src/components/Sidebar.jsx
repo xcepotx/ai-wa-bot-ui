@@ -19,7 +19,7 @@ const NAV = [
   { to: '/dashboard/inbox',    icon: Inbox,           label: 'Conversations' },
 ];
 
-export default function Sidebar({ user }) {
+export default function Sidebar({ user, shop }) {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -31,9 +31,9 @@ export default function Sidebar({ user }) {
     toast.success('Berhasil logout');
   };
 
-  const isSpaceCraftShop = user?.shop_id === 'spacecraft-main';
+  const showManualProducts = shop?.show_manual_products !== false;
   const visibleNav = NAV.filter(item => {
-    if (isSpaceCraftShop && item.to === '/dashboard/products') return false;
+    if (!showManualProducts && item.to === '/dashboard/products') return false;
     return true;
   });
 

@@ -5,11 +5,11 @@ import toast from 'react-hot-toast';
 import { Save, Store, CreditCard } from 'lucide-react';
 
 export default function Shop() {
-  const { user } = useOutletContext();
+  const { user, setShop } = useOutletContext();
   const [tab, setTab]       = useState('profile');
   const [shopForm, setShopForm] = useState({
     name: '', description: '', business_type: '',
-    whatsapp: '', address: '', hours: '', about: '', is_active: true,
+    whatsapp: '', address: '', hours: '', about: '', is_active: true, show_manual_products: true,
   });
   const [payForm, setPayForm] = useState({
     qris_available: false, qris_image_url: '',
@@ -45,6 +45,7 @@ export default function Shop() {
         hours:         shop.hours || '',
         about:         shop.about || '',
         is_active:     shop.is_active ?? true,
+        show_manual_products: shop.show_manual_products !== false,
       });
       const pay = p.data.payment;
       setPayForm({
@@ -76,6 +77,14 @@ export default function Shop() {
         window.location.reload();
       } else {
         await shopApi.update(shopForm);
+        const menuRes = await shopApi.updateMenuSettings({
+          show_manual_products: !!shopForm.show_manual_products,
+        });
+        setShop?.(menuRes.data.shop || null);
+        setShopForm(f => ({
+          ...f,
+          show_manual_products: menuRes.data.shop?.show_manual_products ?? f.show_manual_products,
+        }));
         toast.success('Profil toko berhasil disimpan');
       }
     } catch (err) {
@@ -214,6 +223,22 @@ export default function Shop() {
               <textarea rows={2} placeholder="Info singkat untuk bot..."
                 value={shopForm.about}
                 onChange={e => setShopForm(f => ({ ...f, about: e.target.value }))} />
+            </div>
+            <div className="field" style={{ marginTop: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer', margin: 0 }}>
+                <input
+                  type="checkbox"
+                  checked={shopForm.show_manual_products}
+                  onChange={e => setShopForm(f => ({ ...f, show_manual_products: e.target.checked }))}
+                  style={{ width: 'auto', marginTop: 3 }}
+                />
+                <span>
+                  <strong>Tampilkan Produk Manual</strong>
+                  <div className="field-hint">
+                    Matikan jika produk utama toko diambil dari integrasi API seperti SpaceCraft.
+                  </div>
+                </span>
+              </label>
             </div>
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? <span className="spinner" /> : <><Save size={15} /> {isNew ? 'Buat Toko' : 'Simpan'}</>}
