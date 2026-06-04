@@ -31,6 +31,12 @@ export default function Sidebar({ user }) {
     toast.success('Berhasil logout');
   };
 
+  const isSpaceCraftShop = user?.shop_id === 'spacecraft-main';
+  const visibleNav = NAV.filter(item => {
+    if (isSpaceCraftShop && item.to === '/dashboard/products') return false;
+    return true;
+  });
+
   return (
     <aside style={{
       width: 'var(--sidebar-w)',
@@ -84,7 +90,7 @@ export default function Sidebar({ user }) {
           </NavLink>
         )}
 
-        {NAV.map(({ to, icon: Icon, label }) => (
+        {visibleNav.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
