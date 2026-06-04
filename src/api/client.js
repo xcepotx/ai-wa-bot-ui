@@ -97,6 +97,7 @@ export const spacecraftApi = {
   syncProducts: () => client.post('/spacecraft/sync-products'),
   products: params => client.get('/spacecraft/products', { params }),
   syncHistory: params => client.get('/spacecraft/sync-history', { params }),
+  commandCenter: () => client.get('/spacecraft/command-center'),
 };
 
 export const providerApi = {
