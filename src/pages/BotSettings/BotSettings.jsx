@@ -101,28 +101,38 @@ export default function BotSettings() {
                   <div style={{ fontWeight: 600 }}>Aktifkan Bot</div>
                   <div className="text-sm text-muted">Bot akan memproses pesan masuk</div>
                 </div>
-                <label style={{ position: 'relative', display: 'inline-block', width: 48, height: 26 }}>
-                  <input
-                    type="checkbox"
-                    checked={form.enabled}
-                    onChange={e => setForm(f => ({ ...f, enabled: e.target.checked }))}
-                    style={{ display: 'none' }}
-                  />
-                  <div
-                    onClick={() => setForm(f => ({ ...f, enabled: !f.enabled }))}
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form.enabled}
+                  onClick={() => setForm(f => ({ ...f, enabled: !f.enabled }))}
+                  title={form.enabled ? 'Bot aktif' : 'Bot nonaktif'}
+                  style={{
+                    position: 'relative',
+                    width: 48,
+                    height: 26,
+                    border: 0,
+                    padding: 0,
+                    borderRadius: 99,
+                    cursor: 'pointer',
+                    background: form.enabled ? 'var(--brand)' : 'var(--border)',
+                    transition: 'background 0.2s',
+                  }}
+                >
+                  <span
                     style={{
-                      position: 'absolute', inset: 0,
-                      background: form.enabled ? 'var(--brand)' : 'var(--border)',
-                      borderRadius: 99, cursor: 'pointer', transition: 'background 0.2s',
+                      position: 'absolute',
+                      top: 3,
+                      left: form.enabled ? 25 : 3,
+                      width: 20,
+                      height: 20,
+                      background: '#fff',
+                      borderRadius: '50%',
+                      transition: 'left 0.2s',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
                     }}
-                  >
-                    <div style={{
-                      position: 'absolute', top: 3, left: form.enabled ? 25 : 3,
-                      width: 20, height: 20, background: '#fff', borderRadius: '50%',
-                      transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
-                    }} />
-                  </div>
-                </label>
+                  />
+                </button>
               </div>
 
               <div className="field">
@@ -211,9 +221,9 @@ export default function BotSettings() {
 
             {/* Handoff Keywords */}
             <div className="card">
-              <div className="card-title">Handoff Keywords</div>
+              <div className="card-title">Kata Kunci Oper ke Admin <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>(Opsional)</span></div>
               <p style={{ fontSize: '0.82rem', marginBottom: 12 }}>
-                Jika pelanggan menyebut kata-kata ini, bot akan mengarahkan ke admin manusia.
+                Opsional. Jika pelanggan menyebut kata-kata ini, bot akan lebih cepat mengarahkan percakapan ke admin manusia. Tidak wajib untuk mengaktifkan balas otomatis.
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                 {form.handoff_keywords.map(kw => (

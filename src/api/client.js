@@ -21,7 +21,7 @@ client.interceptors.response.use(
   err => {
     if (err.response?.status === 401) {
       localStorage.removeItem('bot_token');
-      window.location.href = '/login';
+      window.location.href = '/ai-wa-bot/#/login';
     }
     return Promise.reject(err);
   }
@@ -81,6 +81,18 @@ export const adminApi = {
   resolve: (sessionId, note) => client.post(`/admin/conversations/${sessionId}/resolve`, { note }),
 };
 
+
+
+export const webchatLeadApi = {
+  list: params => client.get('/webchat-leads', { params }),
+  detail: leadId => client.get(`/webchat-leads/${leadId}`),
+  markFollowedUp: (leadId, note) => client.post(`/webchat-leads/${leadId}/mark-followed-up`, { note }),
+};
+
+export const spacecraftApi = {
+  syncStatus: () => client.get('/spacecraft/sync-status'),
+  syncProducts: () => client.post('/spacecraft/sync-products'),
+};
 
 export const providerApi = {
   readiness: () => client.get('/provider-readiness'),

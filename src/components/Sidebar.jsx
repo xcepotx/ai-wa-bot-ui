@@ -3,7 +3,7 @@ import { authApi } from '../api/client';
 import toast from 'react-hot-toast';
 import {
   LayoutDashboard, Store, Package, MessageSquare,
-  Settings, Bot, LogOut, Zap, Inbox, CheckCircle2, ShieldCheck
+  Settings, Bot, LogOut, Zap, Inbox, CheckCircle2, ShieldCheck, UserPlus
 } from 'lucide-react';
 
 const NAV = [
@@ -14,6 +14,7 @@ const NAV = [
   { to: '/dashboard/bot',      icon: Bot,             label: 'Pengaturan Asisten' },
   { to: '/dashboard/simulator',icon: Zap,             label: 'Simulator' },
   { to: '/dashboard/provider-readiness', icon: CheckCircle2, label: 'Provider Checklist' },
+  { to: '/dashboard/webchat-leads', icon: UserPlus,        label: 'Webchat Leads' },
   { to: '/dashboard/inbox',    icon: Inbox,           label: 'Inbox' },
 ];
 

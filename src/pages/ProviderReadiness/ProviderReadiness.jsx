@@ -61,7 +61,7 @@ export default function ProviderReadiness() {
       <div className="page-header">
         <div className="page-header-left">
           <h1>Provider Readiness</h1>
-          <p>Checklist kesiapan sebelum Lapakin Asisten dihubungkan ke WhatsApp real.</p>
+          <p>Checklist kesiapan sebelum asisten toko dihubungkan ke WhatsApp real.</p>
         </div>
 
         <button className="btn btn-secondary" onClick={load}>
@@ -78,7 +78,7 @@ export default function ProviderReadiness() {
         <>
           <div style={styles.hero}>
             <div>
-              <p style={styles.eyebrow}>Lapakin Asisten</p>
+              <p style={styles.eyebrow}>Asisten Toko</p>
               <h2 style={styles.heroTitle}>{data.shop_name || data.shop_id}</h2>
               <p style={styles.subtitle}>
                 Minimum score untuk connect provider: {data.minimum_score}/100
@@ -153,8 +153,8 @@ export default function ProviderReadiness() {
           </div>
 
           <div style={styles.note}>
-            <strong>Catatan:</strong> Checklist ini belum menghubungkan WhatsApp real.
-            Ini hanya memastikan toko aman dan siap sebelum masuk proses provider adapter.
+            <strong>Catatan:</strong> Checklist ini hanya memastikan toko siap untuk channel WhatsApp real.
+            Kata kunci oper ke admin bersifat opsional dan tidak menjadi syarat readiness.
           </div>
         </>
       ) : null}
