@@ -35,6 +35,7 @@ function eventLabel(type) {
     'spacecraft.products_synced': 'Sync Success',
     'spacecraft.products_sync_failed': 'Sync Failed',
     'owner.spacecraft.products_sync_triggered': 'Manual Trigger',
+    'spacecraft.product_intelligence_updated': 'Bot AI Updated',
   };
   return map[type] || type;
 }
@@ -50,6 +51,11 @@ export default function SpaceCraftProducts() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState('');
+
+  const [intelModal, setIntelModal] = useState(null);
+  const [intelForm, setIntelForm] = useState({ bot_aliases: '', bot_keywords: '', bot_notes: '' });
+  const [intelLoading, setIntelLoading] = useState(false);
+  const [intelSaving, setIntelSaving] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -88,6 +94,60 @@ export default function SpaceCraftProducts() {
   function submitSearch(e) {
     e.preventDefault();
     setQ(queryInput.trim());
+  }
+
+  function listToTextarea(value) {
+    if (Array.isArray(value)) return value.join('\n');
+    return value || '';
+  }
+
+  function textareaToList(value) {
+    return String(value || '')
+      .split(/[\n,;]/)
+      .map(x => x.trim())
+      .filter(Boolean)
+      .slice(0, 30);
+  }
+
+  async function openIntelligence(item) {
+    setIntelModal(item);
+    setIntelLoading(true);
+    setIntelForm({ bot_aliases: '', bot_keywords: '', bot_notes: '' });
+
+    try {
+      const res = await spacecraftApi.getProductIntelligence(item.product_id);
+      const intelligence = res.data.intelligence || {};
+      setIntelForm({
+        bot_aliases: listToTextarea(intelligence.bot_aliases),
+        bot_keywords: listToTextarea(intelligence.bot_keywords),
+        bot_notes: intelligence.bot_notes || '',
+      });
+    } catch (err) {
+      toast.error(err.response?.data?.detail || err.message || 'Gagal memuat Bot Intelligence');
+    } finally {
+      setIntelLoading(false);
+    }
+  }
+
+  async function saveIntelligence(e) {
+    e.preventDefault();
+    if (!intelModal?.product_id) return;
+
+    setIntelSaving(true);
+    try {
+      await spacecraftApi.updateProductIntelligence(intelModal.product_id, {
+        bot_aliases: textareaToList(intelForm.bot_aliases),
+        bot_keywords: textareaToList(intelForm.bot_keywords),
+        bot_notes: intelForm.bot_notes,
+      });
+      toast.success('Bot Intelligence disimpan');
+      setIntelModal(null);
+      await load();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || err.message || 'Gagal menyimpan Bot Intelligence');
+    } finally {
+      setIntelSaving(false);
+    }
   }
 
   useEffect(() => {
@@ -191,6 +251,7 @@ export default function SpaceCraftProducts() {
                   <th style={styles.th}>Harga</th>
                   <th style={styles.th}>Tipe</th>
                   <th style={styles.th}>MOQ</th>
+                  <th style={styles.th}>Bot AI</th>
                   <th style={styles.th}>Status</th>
                   <th style={styles.th}>Update</th>
                   <th style={styles.th}>Link</th>
@@ -209,6 +270,9 @@ export default function SpaceCraftProducts() {
                         <div>
                           <strong>{item.name}</strong>
                           <div style={styles.muted}>{item.slug || item.product_id}</div>
+                          {((item.bot_aliases || []).length > 0 || (item.bot_keywords || []).length > 0) && (
+                            <div style={styles.intelHint}>AI: {(item.bot_aliases || []).length} alias · {(item.bot_keywords || []).length} keyword</div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -219,6 +283,11 @@ export default function SpaceCraftProducts() {
                     </td>
                     <td style={styles.td}><code style={styles.code}>{item.product_type || '-'}</code></td>
                     <td style={styles.td}>{item.minimum_order_quantity || '-'}</td>
+                    <td style={styles.td}>
+                      <button type="button" style={styles.aiButton} onClick={() => openIntelligence(item)}>
+                        Edit AI
+                      </button>
+                    </td>
                     <td style={styles.td}>{statusBadge(item.status)}</td>
                     <td style={styles.td}>
                       <div>{formatDate(item.updated_at)}</div>
@@ -238,6 +307,68 @@ export default function SpaceCraftProducts() {
           </div>
         )}
       </div>
+
+      {intelModal && (
+        <div style={styles.modalOverlay} onClick={e => e.target === e.currentTarget && setIntelModal(null)}>
+          <div style={styles.modal}>
+            <div style={styles.modalHeader}>
+              <div>
+                <p style={styles.eyebrow}>Product Intelligence</p>
+                <h2 style={{ margin: '2px 0 0' }}>{intelModal.name}</h2>
+              </div>
+              <button type="button" style={styles.closeButton} onClick={() => setIntelModal(null)}>×</button>
+            </div>
+
+            {intelLoading ? (
+              <div style={styles.empty}>Memuat Bot Intelligence...</div>
+            ) : (
+              <form onSubmit={saveIntelligence}>
+                <div style={styles.field}>
+                  <label style={styles.label}>Alias Produk</label>
+                  <textarea
+                    rows={4}
+                    value={intelForm.bot_aliases}
+                    onChange={e => setIntelForm(f => ({ ...f, bot_aliases: e.target.value }))}
+                    placeholder={"Satu alias per baris\nContoh: gantungan oreo\nkeychain oreo\noreo clicker"}
+                    style={styles.textarea}
+                  />
+                  <div style={styles.helpText}>Dipakai untuk match nama panggilan produk dari pelanggan.</div>
+                </div>
+
+                <div style={styles.field}>
+                  <label style={styles.label}>Keywords</label>
+                  <textarea
+                    rows={4}
+                    value={intelForm.bot_keywords}
+                    onChange={e => setIntelForm(f => ({ ...f, bot_keywords: e.target.value }))}
+                    placeholder={"Satu keyword per baris\nContoh: hadiah\ncustom\nkeychain\nanime"}
+                    style={styles.textarea}
+                  />
+                  <div style={styles.helpText}>Dipakai untuk menangkap intent umum seperti lampu, custom, gift, anime, pot, vas.</div>
+                </div>
+
+                <div style={styles.field}>
+                  <label style={styles.label}>Bot Notes</label>
+                  <textarea
+                    rows={4}
+                    value={intelForm.bot_notes}
+                    onChange={e => setIntelForm(f => ({ ...f, bot_notes: e.target.value }))}
+                    placeholder="Catatan untuk bot. Contoh: cocok untuk hadiah, bisa custom warna, harga tergantung ukuran."
+                    style={styles.textarea}
+                  />
+                </div>
+
+                <div style={styles.modalFooter}>
+                  <button type="button" style={styles.refreshButton} onClick={() => setIntelModal(null)}>Batal</button>
+                  <button type="submit" style={styles.primaryButton} disabled={intelSaving}>
+                    {intelSaving ? 'Menyimpan...' : 'Simpan Intelligence'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -276,4 +407,15 @@ const styles = {
   linkButton: { border: '1px solid #cbd5e1', background: '#fff', borderRadius: 10, padding: '8px 10px', cursor: 'pointer', fontWeight: 800, color: '#2563eb', textDecoration: 'none' },
   empty: { padding: 24, textAlign: 'center', color: '#64748b' },
   error: { background: '#fee2e2', color: '#991b1b', padding: 12, borderRadius: 12, marginBottom: 14 },
+  intelHint: { color: '#2563eb', fontSize: 11, marginTop: 4, fontWeight: 800 },
+  aiButton: { border: '1px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', borderRadius: 10, padding: '8px 10px', cursor: 'pointer', fontWeight: 800, whiteSpace: 'nowrap' },
+  modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.55)', zIndex: 9999, display: 'grid', placeItems: 'center', padding: 18 },
+  modal: { width: 'min(720px, 96vw)', maxHeight: '92vh', overflowY: 'auto', background: '#fff', borderRadius: 18, padding: 20, boxShadow: '0 24px 80px rgba(15, 23, 42, 0.28)' },
+  modalHeader: { display: 'flex', justifyContent: 'space-between', gap: 14, alignItems: 'flex-start', borderBottom: '1px solid #e2e8f0', paddingBottom: 12, marginBottom: 14 },
+  closeButton: { border: 0, background: '#f1f5f9', borderRadius: 10, width: 36, height: 36, cursor: 'pointer', fontSize: 24, lineHeight: 1 },
+  field: { display: 'grid', gap: 6, marginBottom: 14 },
+  label: { fontWeight: 800, color: '#0f172a' },
+  textarea: { width: '100%', border: '1px solid #cbd5e1', borderRadius: 12, padding: 12, fontFamily: 'inherit', resize: 'vertical' },
+  helpText: { color: '#64748b', fontSize: 12 },
+  modalFooter: { display: 'flex', justifyContent: 'flex-end', gap: 10, borderTop: '1px solid #e2e8f0', paddingTop: 14, marginTop: 4 },
 };
