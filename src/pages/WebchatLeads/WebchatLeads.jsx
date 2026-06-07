@@ -230,8 +230,10 @@ function SyncCard() {
 export default function WebchatLeads() {
   const [items, setItems] = useState([]);
   const [statusCounts, setStatusCounts] = useState([]);
+  const [typeCounts, setTypeCounts] = useState([]);
   const [total, setTotal] = useState(0);
   const [status, setStatus] = useState('');
+  const [leadType, setLeadType] = useState('');
   const [q, setQ] = useState('');
   const [queryInput, setQueryInput] = useState('');
   const [selected, setSelected] = useState(null);
@@ -244,9 +246,10 @@ export default function WebchatLeads() {
     setLoading(true);
     setError('');
     try {
-      const res = await webchatLeadApi.list({ status, q, limit: 100 });
+      const res = await webchatLeadApi.list({ status, lead_type: leadType, q, limit: 100 });
       setItems(res.data.items || []);
       setStatusCounts(res.data.status_counts || []);
+      setTypeCounts(res.data.type_counts || []);
       setTotal(res.data.total || 0);
     } catch (err) {
       setError(err.response?.data?.detail || err.message || 'Gagal memuat leads');
@@ -293,13 +296,26 @@ export default function WebchatLeads() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, q]);
+  }, [status, q, leadType]);
 
   const stats = useMemo(() => {
-    const out = { total, contact_requested: 0, new: 0, notified: 0, followed_up: 0, won: 0, lost: 0, closed: 0 };
+    const out = {
+      total,
+      contact_requested: 0,
+      new: 0,
+      notified: 0,
+      followed_up: 0,
+      won: 0,
+      lost: 0,
+      closed: 0,
+      ready_stock: 0,
+      custom: 0,
+      general: 0,
+    };
     for (const row of statusCounts) out[row.status] = row.count;
+    for (const row of typeCounts) out[row.lead_type || 'general'] = row.count;
     return out;
-  }, [statusCounts, total]);
+  }, [statusCounts, typeCounts, total]);
 
   function submitSearch(e) {
     e.preventDefault();
@@ -326,6 +342,8 @@ export default function WebchatLeads() {
 
       <div style={styles.statsGrid}>
         <div style={styles.statCard}><span>Total</span><strong>{stats.total}</strong></div>
+        <div style={styles.statCard}><span>Ready Stock</span><strong>{stats.ready_stock || 0}</strong></div>
+        <div style={styles.statCard}><span>Custom</span><strong>{stats.custom || 0}</strong></div>
         <div style={styles.statCard}><span>Minta Kontak</span><strong>{stats.contact_requested || 0}</strong></div>
         <div style={styles.statCard}><span>Followed Up</span><strong>{stats.followed_up || 0}</strong></div>
         <div style={styles.statCard}><span>Won</span><strong>{stats.won || 0}</strong></div>
@@ -342,6 +360,12 @@ export default function WebchatLeads() {
           />
           <button type="submit" style={styles.primaryButton}>Cari</button>
         </form>
+        <select value={leadType} onChange={(e) => setLeadType(e.target.value)} style={styles.select}>
+          <option value="">Semua Tipe</option>
+          <option value="ready_stock">Ready Stock</option>
+          <option value="custom">Custom</option>
+          <option value="general">General</option>
+        </select>
         <select value={status} onChange={(e) => setStatus(e.target.value)} style={styles.select}>
           <option value="">Semua Status</option>
           {STATUS_OPTIONS.map(([value, label]) => (
@@ -541,7 +565,7 @@ const styles = {
   secondaryButton: { border: '1px solid #cbd5e1', background: '#fff', color: '#0f172a', borderRadius: 12, padding: '10px 14px', cursor: 'pointer', fontWeight: 800 },
   dangerButton: { border: 0, background: '#ef4444', color: '#fff', borderRadius: 12, padding: '10px 14px', cursor: 'pointer', fontWeight: 800 },
   darkButton: { border: 0, background: '#334155', color: '#fff', borderRadius: 12, padding: '10px 14px', cursor: 'pointer', fontWeight: 800 },
-  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: 12, marginBottom: 16 },
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, marginBottom: 16 },
   statCard: { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 16, padding: 16, display: 'grid', gap: 6 },
   toolbar: { display: 'flex', gap: 12, marginBottom: 16 },
   searchForm: { display: 'flex', gap: 8, flex: 1 },
