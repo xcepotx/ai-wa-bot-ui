@@ -36,6 +36,57 @@ function waLink(phone, need) {
   return `https://wa.me/${clean}?text=${text}`;
 }
 
+function cleanCustomSummary(value) {
+  return String(value || '')
+    .replace(/^Brief custom:\s*/i, '')
+    .trim();
+}
+
+function leadNeedForWa(lead) {
+  if (!lead) return 'custom 3D print';
+  return cleanCustomSummary(lead.custom_brief_summary || lead.need_summary || lead.last_message || 'custom 3D print');
+}
+
+function isCustomLead(lead) {
+  if (!lead) return false;
+  const text = `${lead.custom_brief_summary || ''} ${lead.need_summary || ''} ${lead.intent || ''}`.toLowerCase();
+  return Boolean(lead.custom_brief_summary) || text.includes('brief custom') || text.includes('custom');
+}
+
+function briefLines(value) {
+  return cleanCustomSummary(value)
+    .split('\n')
+    .map(line => line.trim().replace(/^-\s*/, ''))
+    .filter(Boolean);
+}
+
+function CustomBriefCard({ lead }) {
+  const summary = lead?.custom_brief_summary || (
+    String(lead?.need_summary || '').toLowerCase().includes('brief custom')
+      ? lead?.need_summary
+      : ''
+  );
+  const lines = briefLines(summary);
+  if (!lines.length) return null;
+
+  return (
+    <div style={styles.briefCard}>
+      <div style={styles.briefHeader}>
+        <span style={styles.customBadge}>Custom Lead</span>
+        <strong>Brief Custom</strong>
+      </div>
+      <div style={styles.briefList}>
+        {lines.map((line, idx) => (
+          <div key={`${line}-${idx}`} style={styles.briefItem}>
+            <span style={styles.briefDot}>✓</span>
+            <span>{line}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function badge(status) {
   const map = {
     contact_requested: ['Minta Kontak', '#eff6ff', '#1d4ed8'],
@@ -191,7 +242,7 @@ export default function WebchatLeads() {
   }
 
   const activeLead = detail?.lead;
-  const activeWaUrl = activeLead?.customer_phone ? waLink(activeLead.customer_phone, activeLead.need_summary) : '';
+  const activeWaUrl = activeLead?.customer_phone ? waLink(activeLead.customer_phone, leadNeedForWa(activeLead)) : '';
 
   return (
     <div style={styles.page}>
@@ -256,7 +307,7 @@ export default function WebchatLeads() {
               </thead>
               <tbody>
                 {items.map((item) => {
-                  const itemWaUrl = item.customer_phone ? waLink(item.customer_phone, item.need_summary) : '';
+                  const itemWaUrl = item.customer_phone ? waLink(item.customer_phone, leadNeedForWa(item)) : '';
                   return (
                     <tr
                       key={item.lead_id}
@@ -267,9 +318,14 @@ export default function WebchatLeads() {
                       <td style={styles.td}>
                         <strong>{item.customer_name || 'Belum disebutkan'}</strong>
                         <div style={styles.muted}>{item.customer_phone || '-'}</div>
+                        {isCustomLead(item) && (
+                          <div style={styles.badgeRow}>
+                            <span style={styles.customBadge}>Custom Lead</span>
+                          </div>
+                        )}
                       </td>
                       <td style={styles.td}>
-                        <div style={styles.clip}>{item.need_summary || item.last_message || '-'}</div>
+                        <div style={styles.clip}>{cleanCustomSummary(item.custom_brief_summary || item.need_summary || item.last_message || '-')}</div>
                         <div style={styles.muted}>{item.page_url || '-'}</div>
                       </td>
                       <td style={styles.td}>{badge(item.status)}</td>
@@ -314,7 +370,13 @@ export default function WebchatLeads() {
             <div style={styles.modalHeader}>
               <div>
                 <h2 style={{ margin: 0 }}>Lead Detail</h2>
-                {activeLead && <div style={styles.muted}>{badge(activeLead.status)} · Updated {formatDate(activeLead.updated_at)}</div>}
+                  {activeLead && (
+                    <div style={styles.modalMetaLine}>
+                      {badge(activeLead.status)}
+                      {isCustomLead(activeLead) && <span style={styles.customBadge}>Custom Lead</span>}
+                      <span>Updated {formatDate(activeLead.updated_at)}</span>
+                    </div>
+                  )}
               </div>
               <button style={styles.refreshButton} onClick={() => setSelected(null)}>Tutup</button>
             </div>
@@ -359,7 +421,14 @@ export default function WebchatLeads() {
                 </div>
 
                 <h3 style={styles.sectionTitle}>Kebutuhan</h3>
-                <div style={styles.box}>{activeLead?.need_summary || '-'}</div>
+                  {isCustomLead(activeLead) ? (
+                    <>
+                      <CustomBriefCard lead={activeLead} />
+                      <div style={styles.boxMuted}>{cleanCustomSummary(activeLead?.need_summary || '-')}</div>
+                    </>
+                  ) : (
+                    <div style={styles.box}>{activeLead?.need_summary || '-'}</div>
+                  )}
 
                 {(activeLead?.follow_up_note || activeLead?.status_note) && (
                   <>
