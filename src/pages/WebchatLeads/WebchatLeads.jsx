@@ -691,7 +691,6 @@ export default function WebchatLeads() {
                       <>
                         <ReadyStockOrderCard lead={activeLead} />
                         <OrderReadinessCard lead={activeLead} />
-                        <div style={styles.boxMuted}>{cleanCustomSummary(activeLead?.need_summary || '-')}</div>
                       </>
                     ) : (
                       <div style={styles.box}>{activeLead?.need_summary || '-'}</div>
