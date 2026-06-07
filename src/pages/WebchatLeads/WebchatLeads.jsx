@@ -39,12 +39,13 @@ function waLink(phone, need) {
 function cleanCustomSummary(value) {
   return String(value || '')
     .replace(/^Brief custom:\s*/i, '')
+    .replace(/^Order ready stock:\s*/i, '')
     .trim();
 }
 
 function leadNeedForWa(lead) {
   if (!lead) return 'custom 3D print';
-  return cleanCustomSummary(lead.custom_brief_summary || lead.need_summary || lead.last_message || 'custom 3D print');
+  return cleanCustomSummary(lead.ready_stock_order_summary || lead.custom_brief_summary || lead.need_summary || lead.last_message || 'custom 3D print');
 }
 
 function isCustomLead(lead) {
@@ -86,6 +87,40 @@ function CustomBriefCard({ lead }) {
     </div>
   );
 }
+
+function isReadyStockLead(lead) {
+  if (!lead) return false;
+  const text = `${lead.ready_stock_order_summary || ''} ${lead.need_summary || ''} ${lead.lead_type || ''}`.toLowerCase();
+  return Boolean(lead.ready_stock_order_summary) || lead.lead_type === 'ready_stock' || text.includes('order ready stock');
+}
+
+function ReadyStockOrderCard({ lead }) {
+  const summary = lead?.ready_stock_order_summary || (
+    String(lead?.need_summary || '').toLowerCase().includes('order ready stock')
+      ? lead?.need_summary
+      : ''
+  );
+  const lines = briefLines(summary);
+  if (!lines.length) return null;
+
+  return (
+    <div style={styles.readyCard}>
+      <div style={styles.briefHeader}>
+        <span style={styles.readyBadge}>Ready Stock</span>
+        <strong>Order Ready Stock</strong>
+      </div>
+      <div style={styles.briefList}>
+        {lines.map((line, idx) => (
+          <div key={`${line}-${idx}`} style={styles.briefItem}>
+            <span style={styles.readyDot}>✓</span>
+            <span>{line}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 
 function badge(status) {
   const map = {
@@ -318,14 +353,15 @@ export default function WebchatLeads() {
                       <td style={styles.td}>
                         <strong>{item.customer_name || 'Belum disebutkan'}</strong>
                         <div style={styles.muted}>{item.customer_phone || '-'}</div>
-                        {isCustomLead(item) && (
+                        {(isCustomLead(item) || isReadyStockLead(item)) && (
                           <div style={styles.badgeRow}>
-                            <span style={styles.customBadge}>Custom Lead</span>
+                            {isCustomLead(item) && <span style={styles.customBadge}>Custom Lead</span>}
+                            {isReadyStockLead(item) && <span style={styles.readyBadge}>Ready Stock</span>}
                           </div>
                         )}
                       </td>
                       <td style={styles.td}>
-                        <div style={styles.clip}>{cleanCustomSummary(item.custom_brief_summary || item.need_summary || item.last_message || '-')}</div>
+                        <div style={styles.clip}>{cleanCustomSummary(item.ready_stock_order_summary || item.custom_brief_summary || item.need_summary || item.last_message || '-')}</div>
                         <div style={styles.muted}>{item.page_url || '-'}</div>
                       </td>
                       <td style={styles.td}>{badge(item.status)}</td>
@@ -374,6 +410,7 @@ export default function WebchatLeads() {
                     <div style={styles.modalMetaLine}>
                       {badge(activeLead.status)}
                       {isCustomLead(activeLead) && <span style={styles.customBadge}>Custom Lead</span>}
+                        {isReadyStockLead(activeLead) && <span style={styles.readyBadge}>Ready Stock</span>}
                       <span>Updated {formatDate(activeLead.updated_at)}</span>
                     </div>
                   )}
@@ -421,14 +458,19 @@ export default function WebchatLeads() {
                 </div>
 
                 <h3 style={styles.sectionTitle}>Kebutuhan</h3>
-                  {isCustomLead(activeLead) ? (
-                    <>
-                      <CustomBriefCard lead={activeLead} />
-                      <div style={styles.boxMuted}>{cleanCustomSummary(activeLead?.need_summary || '-')}</div>
-                    </>
-                  ) : (
-                    <div style={styles.box}>{activeLead?.need_summary || '-'}</div>
-                  )}
+                    {isCustomLead(activeLead) ? (
+                      <>
+                        <CustomBriefCard lead={activeLead} />
+                        <div style={styles.boxMuted}>{cleanCustomSummary(activeLead?.need_summary || '-')}</div>
+                      </>
+                    ) : isReadyStockLead(activeLead) ? (
+                      <>
+                        <ReadyStockOrderCard lead={activeLead} />
+                        <div style={styles.boxMuted}>{cleanCustomSummary(activeLead?.need_summary || '-')}</div>
+                      </>
+                    ) : (
+                      <div style={styles.box}>{activeLead?.need_summary || '-'}</div>
+                    )}
 
                 {(activeLead?.follow_up_note || activeLead?.status_note) && (
                   <>
@@ -489,6 +531,9 @@ const styles = {
   muted: { color: '#64748b', fontSize: 12, marginTop: 4 },
   clip: { maxWidth: 420, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
   badge: { display: 'inline-flex', borderRadius: 999, padding: '4px 9px', fontSize: 12, fontWeight: 800 },
+    badgeRow: { display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+    customBadge: { display: 'inline-flex', alignItems: 'center', borderRadius: 999, padding: '4px 9px', fontSize: 12, fontWeight: 900, background: '#ede9fe', color: '#6d28d9' },
+    readyBadge: { display: 'inline-flex', alignItems: 'center', borderRadius: 999, padding: '4px 9px', fontSize: 12, fontWeight: 900, background: '#dcfce7', color: '#15803d' },
   code: { background: '#f1f5f9', borderRadius: 8, padding: '3px 6px' },
   rowActions: { display: 'flex', gap: 6, alignItems: 'center' },
   linkButton: { border: '1px solid #cbd5e1', background: '#fff', borderRadius: 10, padding: '8px 10px', cursor: 'pointer', fontWeight: 800, color: '#2563eb' },
@@ -499,10 +544,19 @@ const styles = {
   modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.55)', zIndex: 1000, padding: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' },
   modal: { width: 'min(960px, 96vw)', maxHeight: '90vh', overflow: 'auto', background: '#fff', borderRadius: 20, padding: 22, boxShadow: '0 24px 80px rgba(15,23,42,0.25)' },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
+    modalMetaLine: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, color: '#64748b', fontSize: 12, marginTop: 6 },
   detailGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 10, marginTop: 14 },
   modalActions: { display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 16 },
   sectionTitle: { marginTop: 18, marginBottom: 8 },
   box: { background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 12 },
+    boxMuted: { background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: 12, padding: 12, marginTop: 10, color: '#64748b', fontSize: 13, whiteSpace: 'pre-wrap' },
+    briefCard: { background: 'linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%)', border: '1px solid #ddd6fe', borderRadius: 16, padding: 14 },
+    readyCard: { background: 'linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%)', border: '1px solid #bbf7d0', borderRadius: 16, padding: 14 },
+    briefHeader: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 },
+    briefList: { display: 'grid', gap: 8 },
+    briefItem: { display: 'flex', gap: 8, alignItems: 'flex-start', color: '#334155', fontSize: 14, lineHeight: 1.45 },
+    briefDot: { flex: '0 0 auto', width: 20, height: 20, borderRadius: 999, background: '#dcfce7', color: '#15803d', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12 },
+    readyDot: { flex: '0 0 auto', width: 20, height: 20, borderRadius: 999, background: '#dcfce7', color: '#15803d', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 12 },
   noteBox: { background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', borderRadius: 12, padding: 12 },
   pre: { whiteSpace: 'pre-wrap', background: '#0f172a', color: '#e2e8f0', borderRadius: 14, padding: 14, fontSize: 13 },
   messages: { display: 'grid', gap: 8 },
