@@ -29,10 +29,15 @@ function normalizeWaPhone(value) {
   return phone;
 }
 
-function waLink(phone, need) {
+function waLink(phone, leadOrNeed) {
   const clean = normalizeWaPhone(phone);
   if (!clean) return '';
-  const text = encodeURIComponent(`Halo kak, saya admin SpaceCraft. Saya mau follow up kebutuhan: ${need || 'custom 3D print'}`);
+
+  const message = (leadOrNeed && typeof leadOrNeed === 'object')
+    ? buildFollowUpMessage(leadOrNeed)
+    : `Halo kak, saya admin SpaceCraft. Saya mau follow up kebutuhan: ${leadOrNeed || 'custom 3D print'}`;
+
+  const text = encodeURIComponent(message);
   return `https://wa.me/${clean}?text=${text}`;
 }
 
@@ -119,6 +124,31 @@ function ReadyStockOrderCard({ lead }) {
       </div>
     </div>
   );
+}
+
+
+function buildFollowUpMessage(lead) {
+  const namePart = lead?.customer_name ? ` ${lead.customer_name}` : '';
+
+  if (isReadyStockLead(lead)) {
+    const summary = cleanCustomSummary(lead.ready_stock_order_summary || lead.need_summary || '');
+    return (
+      `Halo kak${namePart}, saya admin SpaceCraft mau follow up order ready stock kak.\n\n` +
+      `Saya rangkum pesanan awalnya:\n${summary || leadNeedForWa(lead)}\n\n` +
+      `Kami bantu konfirmasi stok, ongkir, dan proses pemesanannya ya.`
+    );
+  }
+
+  if (isCustomLead(lead)) {
+    const summary = cleanCustomSummary(lead.custom_brief_summary || lead.need_summary || '');
+    return (
+      `Halo kak${namePart}, saya admin SpaceCraft mau follow up request custom kak.\n\n` +
+      `Saya rangkum brief awalnya:\n${summary || leadNeedForWa(lead)}\n\n` +
+      `Admin akan bantu cek estimasi harga dan waktu pengerjaan ya.`
+    );
+  }
+
+  return `Halo kak${namePart}, saya admin SpaceCraft. Saya mau follow up kebutuhan kakak: ${leadNeedForWa(lead)}`;
 }
 
 
@@ -277,7 +307,7 @@ export default function WebchatLeads() {
   }
 
   const activeLead = detail?.lead;
-  const activeWaUrl = activeLead?.customer_phone ? waLink(activeLead.customer_phone, leadNeedForWa(activeLead)) : '';
+  const activeWaUrl = activeLead?.customer_phone ? waLink(activeLead.customer_phone, activeLead) : '';
 
   return (
     <div style={styles.page}>
@@ -342,7 +372,7 @@ export default function WebchatLeads() {
               </thead>
               <tbody>
                 {items.map((item) => {
-                  const itemWaUrl = item.customer_phone ? waLink(item.customer_phone, leadNeedForWa(item)) : '';
+                  const itemWaUrl = item.customer_phone ? waLink(item.customer_phone, item) : '';
                   return (
                     <tr
                       key={item.lead_id}
