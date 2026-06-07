@@ -127,11 +127,70 @@ function ReadyStockOrderCard({ lead }) {
 }
 
 
+
+function fulfillmentLabel(value) {
+  if (!value) return '-';
+  const text = String(value).toLowerCase();
+  if (text === 'delivery') return 'Dikirim';
+  if (text === 'pickup') return 'Pickup / ambil sendiri';
+  return value;
+}
+
+function hasOrderReadiness(lead) {
+  return Boolean(
+    lead?.order_readiness_summary ||
+    lead?.delivery_area ||
+    lead?.fulfillment_method ||
+    lead?.order_readiness
+  );
+}
+
+function OrderReadinessCard({ lead }) {
+  if (!hasOrderReadiness(lead)) return null;
+
+  const summary = lead?.order_readiness_summary || '';
+  const lines = briefLines(summary);
+  const method = lead?.fulfillment_method || lead?.order_readiness?.fulfillment_method;
+  const area = lead?.delivery_area || lead?.order_readiness?.delivery_area;
+
+  return (
+    <div style={styles.orderCard}>
+      <div style={styles.briefHeader}>
+        <span style={styles.readinessBadge}>Order Readiness</span>
+        <strong>Info Pengiriman</strong>
+      </div>
+
+      <div style={styles.readinessMeta}>
+        <div style={styles.readinessMetaItem}>
+          <span>Metode</span>
+          <strong>{fulfillmentLabel(method)}</strong>
+        </div>
+        <div style={styles.readinessMetaItem}>
+          <span>Area/Kota</span>
+          <strong>{area || '-'}</strong>
+        </div>
+      </div>
+
+      {lines.length > 0 && (
+        <div style={styles.briefList}>
+          {lines.map((line, idx) => (
+            <div key={`${line}-${idx}`} style={styles.briefItem}>
+              <span style={styles.readyDot}>✓</span>
+              <span>{line}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function buildFollowUpMessage(lead) {
   const namePart = lead?.customer_name ? ` ${lead.customer_name}` : '';
 
   if (isReadyStockLead(lead)) {
-    const summary = cleanCustomSummary(lead.ready_stock_order_summary || lead.need_summary || '');
+    const summary = cleanCustomSummary(lead.order_readiness_summary || lead.ready_stock_order_summary || lead.need_summary || '');
     return (
       `Halo kak${namePart}, saya admin SpaceCraft mau follow up order ready stock kak.\n\n` +
       `Saya rangkum pesanan awalnya:\n${summary || leadNeedForWa(lead)}\n\n` +
@@ -149,6 +208,30 @@ function buildFollowUpMessage(lead) {
   }
 
   return `Halo kak${namePart}, saya admin SpaceCraft. Saya mau follow up kebutuhan kakak: ${leadNeedForWa(lead)}`;
+}
+
+
+function defaultLeadActionNote(lead, action) {
+  if (isReadyStockLead(lead)) {
+    if (action === 'followed_up') return 'Ready stock lead sudah di-follow up via WhatsApp untuk konfirmasi stok, ongkir, dan proses order.';
+    if (action === 'won') return 'Ready stock order berhasil lanjut/closing.';
+    if (action === 'lost') return 'Ready stock lead tidak lanjut atau batal order.';
+    if (action === 'closed') return 'Ready stock lead ditutup setelah proses follow-up.';
+  }
+
+  if (isCustomLead(lead)) {
+    if (action === 'followed_up') return 'Custom lead sudah di-follow up via WhatsApp untuk cek brief, estimasi harga, dan waktu pengerjaan.';
+    if (action === 'won') return 'Custom order berhasil lanjut/closing.';
+    if (action === 'lost') return 'Custom lead tidak lanjut atau batal request.';
+    if (action === 'closed') return 'Custom lead ditutup setelah proses follow-up.';
+  }
+
+  if (action === 'followed_up') return 'Lead sudah di-follow up via WhatsApp.';
+  if (action === 'won') return 'Lead berhasil closing / order lanjut.';
+  if (action === 'lost') return 'Lead tidak lanjut / batal.';
+  if (action === 'closed') return 'Lead ditutup.';
+
+  return 'Update status lead.';
 }
 
 
@@ -289,8 +372,9 @@ export default function WebchatLeads() {
     }
   }
 
-  function markFollowedUp(leadId) {
-    updateLeadStatus(leadId, 'followed_up', 'Followed Up', 'Sudah di-follow up via WhatsApp');
+  function markFollowedUp(lead) {
+    if (!lead?.lead_id) return;
+    updateLeadStatus(lead.lead_id, 'followed_up', 'Followed Up', defaultLeadActionNote(lead, 'followed_up'));
   }
 
   useEffect(() => {
@@ -490,22 +574,22 @@ export default function WebchatLeads() {
                     </a>
                   )}
                   {activeLead?.status !== 'followed_up' && (
-                    <button style={styles.secondaryButton} onClick={() => markFollowedUp(activeLead.lead_id)}>
+                    <button style={styles.secondaryButton} onClick={() => markFollowedUp(activeLead)}>
                       Mark Followed Up
                     </button>
                   )}
                   {activeLead?.status !== 'won' && (
-                    <button style={styles.primaryButton} onClick={() => updateLeadStatus(activeLead.lead_id, 'won', 'Won', 'Lead berhasil closing / order lanjut')}>
+                    <button style={styles.primaryButton} onClick={() => updateLeadStatus(activeLead.lead_id, 'won', 'Won', defaultLeadActionNote(activeLead, 'won'))}>
                       Mark Won
                     </button>
                   )}
                   {activeLead?.status !== 'lost' && (
-                    <button style={styles.dangerButton} onClick={() => updateLeadStatus(activeLead.lead_id, 'lost', 'Lost', 'Lead tidak lanjut / batal')}>
+                    <button style={styles.dangerButton} onClick={() => updateLeadStatus(activeLead.lead_id, 'lost', 'Lost', defaultLeadActionNote(activeLead, 'lost'))}>
                       Mark Lost
                     </button>
                   )}
                   {activeLead?.status !== 'closed' && (
-                    <button style={styles.darkButton} onClick={() => updateLeadStatus(activeLead.lead_id, 'closed', 'Closed', 'Lead ditutup')}>
+                    <button style={styles.darkButton} onClick={() => updateLeadStatus(activeLead.lead_id, 'closed', 'Closed', defaultLeadActionNote(activeLead, 'closed'))}>
                       Close
                     </button>
                   )}
@@ -520,6 +604,7 @@ export default function WebchatLeads() {
                     ) : isReadyStockLead(activeLead) ? (
                       <>
                         <ReadyStockOrderCard lead={activeLead} />
+                        <OrderReadinessCard lead={activeLead} />
                         <div style={styles.boxMuted}>{cleanCustomSummary(activeLead?.need_summary || '-')}</div>
                       </>
                     ) : (
@@ -606,6 +691,10 @@ const styles = {
     boxMuted: { background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: 12, padding: 12, marginTop: 10, color: '#64748b', fontSize: 13, whiteSpace: 'pre-wrap' },
     briefCard: { background: 'linear-gradient(135deg, #f5f3ff 0%, #ffffff 100%)', border: '1px solid #ddd6fe', borderRadius: 16, padding: 14 },
     readyCard: { background: 'linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%)', border: '1px solid #bbf7d0', borderRadius: 16, padding: 14 },
+    orderCard: { background: 'linear-gradient(135deg, #eff6ff 0%, #ffffff 100%)', border: '1px solid #bfdbfe', borderRadius: 16, padding: 14, marginTop: 10 },
+    readinessBadge: { display: 'inline-flex', alignItems: 'center', borderRadius: 999, padding: '4px 9px', fontSize: 12, fontWeight: 900, background: '#dbeafe', color: '#1d4ed8' },
+    readinessMeta: { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 10, marginBottom: 10 },
+    readinessMetaItem: { background: '#fff', border: '1px solid #dbeafe', borderRadius: 12, padding: 10, display: 'grid', gap: 4 },
     briefHeader: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 },
     briefList: { display: 'grid', gap: 8 },
     briefItem: { display: 'flex', gap: 8, alignItems: 'flex-start', color: '#334155', fontSize: 14, lineHeight: 1.45 },
