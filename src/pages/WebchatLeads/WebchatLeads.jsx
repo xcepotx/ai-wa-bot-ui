@@ -186,6 +186,92 @@ function OrderReadinessCard({ lead }) {
 }
 
 
+
+function messageRoleLabel(role, source) {
+  const normalized = String(role || '').toLowerCase();
+  if (normalized === 'customer') return 'Customer';
+  if (normalized === 'assistant' || normalized === 'bot') {
+    return source === 'lead_capture' ? 'Bot / Lead Capture' : 'Bot';
+  }
+  if (normalized === 'system') return 'System';
+  return role || '-';
+}
+
+function messageRoleStyle(role, source) {
+  const normalized = String(role || '').toLowerCase();
+  if (normalized === 'customer') return styles.timelineCustomer;
+  if (normalized === 'assistant' || normalized === 'bot') {
+    return source === 'lead_capture' ? styles.timelineLeadCapture : styles.timelineBot;
+  }
+  return styles.timelineSystem;
+}
+
+function visibleTimelineMessages(messages) {
+  const rows = Array.isArray(messages) ? messages : [];
+  const output = [];
+
+  for (let i = 0; i < rows.length; i += 1) {
+    const msg = rows[i];
+    const role = String(msg?.role || '').toLowerCase();
+
+    // Hide simulator/LLM bot draft if the next stored message is the actual webchat override.
+    if (role === 'bot') {
+      const next = rows[i + 1];
+      const nextRole = String(next?.role || '').toLowerCase();
+      const nextSource = String(next?.source || '').toLowerCase();
+      if (nextRole === 'assistant' && nextSource === 'lead_capture') {
+        continue;
+      }
+    }
+
+    output.push(msg);
+  }
+
+  return output;
+}
+
+function ConversationTimeline({ messages }) {
+  const rows = visibleTimelineMessages(messages);
+
+  if (!rows.length) {
+    return <div style={styles.emptyTimeline}>Belum ada riwayat pesan.</div>;
+  }
+
+  return (
+    <div style={styles.timeline}>
+      {rows.map((msg, idx) => {
+        const role = String(msg?.role || '').toLowerCase();
+        const isCustomer = role === 'customer';
+
+        return (
+          <div
+            key={msg.message_id || `${msg.role}-${msg.created_at}-${idx}`}
+            style={{
+              ...styles.timelineRow,
+              justifyContent: isCustomer ? 'flex-start' : 'flex-end',
+            }}
+          >
+            <div style={{ ...styles.timelineBubble, ...messageRoleStyle(msg.role, msg.source) }}>
+              <div style={styles.timelineMeta}>
+                <strong>{messageRoleLabel(msg.role, msg.source)}</strong>
+                <span>{formatDate(msg.created_at)}</span>
+              </div>
+              <div style={styles.timelineText}>{msg.text || '-'}</div>
+              {(msg.intent || msg.source) && (
+                <div style={styles.timelineTags}>
+                  {msg.intent && <code style={styles.code}>{msg.intent}</code>}
+                  {msg.source && <code style={styles.code}>{msg.source}</code>}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+
 function buildFollowUpMessage(lead) {
   const namePart = lead?.customer_name ? ` ${lead.customer_name}` : '';
 
@@ -618,18 +704,8 @@ export default function WebchatLeads() {
                   </>
                 )}
 
-                <h3 style={styles.sectionTitle}>Ringkasan Percakapan</h3>
-                <pre style={styles.pre}>{activeLead?.conversation_summary || '-'}</pre>
-
-                <h3 style={styles.sectionTitle}>Messages</h3>
-                <div style={styles.messages}>
-                  {(detail.messages || []).map((msg) => (
-                    <div key={msg.message_id || `${msg.role}-${msg.created_at}`} style={styles.messageRow}>
-                      <strong>{msg.role || '-'}</strong>
-                      <p>{msg.text || '-'}</p>
-                    </div>
-                  ))}
-                </div>
+                <h3 style={styles.sectionTitle}>Conversation Timeline</h3>
+                <ConversationTimeline messages={detail.messages || []} />
               </>
             )}
           </div>
@@ -703,5 +779,16 @@ const styles = {
   noteBox: { background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', borderRadius: 12, padding: 12 },
   pre: { whiteSpace: 'pre-wrap', background: '#0f172a', color: '#e2e8f0', borderRadius: 14, padding: 14, fontSize: 13 },
   messages: { display: 'grid', gap: 8 },
+    emptyTimeline: { background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: 14, padding: 14, color: '#64748b' },
+    timeline: { display: 'grid', gap: 10, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 16, padding: 14 },
+    timelineRow: { display: 'flex' },
+    timelineBubble: { width: 'min(720px, 92%)', borderRadius: 16, padding: 12, border: '1px solid #e2e8f0', boxShadow: '0 8px 22px rgba(15,23,42,0.04)' },
+    timelineCustomer: { background: '#fff', borderColor: '#cbd5e1' },
+    timelineBot: { background: '#ecfdf5', borderColor: '#bbf7d0' },
+    timelineLeadCapture: { background: '#eff6ff', borderColor: '#bfdbfe' },
+    timelineSystem: { background: '#f1f5f9', borderColor: '#cbd5e1' },
+    timelineMeta: { display: 'flex', justifyContent: 'space-between', gap: 10, color: '#64748b', fontSize: 12, marginBottom: 8 },
+    timelineText: { whiteSpace: 'pre-wrap', color: '#0f172a', lineHeight: 1.5, fontSize: 14 },
+    timelineTags: { display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 },
   messageRow: { background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 12 },
 };
